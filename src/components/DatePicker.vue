@@ -14,24 +14,26 @@
     <div v-else>
         <input ref="reference" :value="formattedDate" @click="isOpen = !isOpen" readonly
             class="border p-2 rounded w-full" />
-        <div ref="floating" v-if="isOpen" :style="floatingStyles"
-            class="vue-datepicker bg-white border border-gray-300 rounded-lg shadow-lg flex z-10">
-            <Presets v-if="range && presets.length" :presets="presets" @select="handlePresetSelect" />
-            <div>
-                <div class="flex">
-                    <Calendar v-for="calendar in calendars" :key="calendar" v-model="dateValue" :range="range"
-                        :current-date="new Date(new Date(currentDate).setMonth(currentDate.getMonth() + (calendar - 1)))"
-                        @prev-month="prevMonth" @next-month="nextMonth" :hide-prev="calendar !== 1"
-                        :hide-next="calendar !== calendars" />
+        <Teleport to="body">
+            <div ref="floating" v-if="isOpen" :style="floatingStyles"
+                class="vue-datepicker bg-white border border-gray-300 rounded-lg shadow-lg flex z-10">
+                <Presets v-if="range && presets.length" :presets="presets" @select="handlePresetSelect" />
+                <div>
+                    <div class="flex">
+                        <Calendar v-for="calendar in calendars" :key="calendar" v-model="dateValue" :range="range"
+                            :current-date="new Date(new Date(currentDate).setMonth(currentDate.getMonth() + (calendar - 1)))"
+                            @prev-month="prevMonth" @next-month="nextMonth" :hide-prev="calendar !== 1"
+                            :hide-next="calendar !== calendars" />
+                    </div>
+                    <TimePicker v-if="enableTime && !range" v-model="timeValue" :is24hr="is24hr" />
                 </div>
-                <TimePicker v-if="enableTime && !range" v-model="timeValue" :is24hr="is24hr" />
             </div>
-        </div>
+        </Teleport>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, Teleport } from 'vue';
 import { useFloating, autoUpdate } from '@floating-ui/vue';
 import dayjs from 'dayjs';
 import Calendar from './sub-components/Calendar.vue';
