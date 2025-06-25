@@ -9,15 +9,15 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
+      { text: 'Components', link: '/components/date-picker' },
+      { text: 'Examples', link: '/examples' }
     ],
 
     sidebar: [
       {
-        text: 'Examples',
+        text: 'Components',
         items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'API Examples', link: '/api-examples' }
+          { text: 'DatePicker', link: '/components/date-picker' }
         ]
       }
     ],
@@ -25,8 +25,5 @@ export default defineConfig({
     socialLinks: [
       { icon: 'github', link: 'https://github.com/ryun-dev/vue-dpicker' }
     ]
-  },
-  vite: {
-    plugins: [vue()]
   }
 })

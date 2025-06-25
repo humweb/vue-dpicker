@@ -3,23 +3,10 @@
 layout: home
 
 hero:
-  name: "Vue D-Picker"
-  text: "Vue Datepicker component styled with tailwind css"
-  tagline: My great project tagline
+  name: "Vue dPicker"
+  text: "A lightweight and customizable datepicker component for Vue 3"
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
-    - theme: alt
-      text: API Examples
-      link: /api-examples
-
-features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+      text: Get Started
+      link: /components/date-picker
 ---
-
