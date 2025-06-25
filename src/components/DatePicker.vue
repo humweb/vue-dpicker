@@ -41,54 +41,22 @@ import TimePicker from './sub-components/TimePicker.vue';
 import Presets from './sub-components/Presets.vue';
 import { useDateHelpers } from '../composables/useDateHelpers';
 import type { PropType } from 'vue';
+import type { ModelValue, Preset, DatePickerProps } from '../types';
 
 const { combineDateAndTime, parseDate, formatDate } = useDateHelpers();
 
-const props = defineProps({
-    modelValue: {
-        type: [String, Date, Object] as PropType<string | Date | { start: string | Date | null; end: string | Date | null } | null>,
-        default: null,
-    },
-    inline: {
-        type: Boolean,
-        default: false,
-    },
-    enableTime: {
-        type: Boolean,
-        default: false,
-    },
-    range: {
-        type: Boolean,
-        default: false,
-    },
-    presets: {
-        type: Array as PropType<{ label: string; range: { start: Date; end: Date } }[]>,
-        default: () => [],
-    },
-    outputFormat: {
-        type: [String, Function] as PropType<string | ((date: Date) => string) | null>,
-        default: null,
-    },
-    is24hr: {
-        type: Boolean,
-        default: true,
-    },
-    calendars: {
-        type: Number,
-        default: 2,
-    },
-    disabled: {
-        type: Boolean,
-        default: false,
-    },
-    minDate: {
-        type: [String, Date] as PropType<string | Date | null>,
-        default: null,
-    },
-    maxDate: {
-        type: [String, Date] as PropType<string | Date | null>,
-        default: null,
-    },
+const props = withDefaults(defineProps<DatePickerProps>(), {
+    modelValue: null,
+    inline: false,
+    enableTime: false,
+    range: false,
+    presets: () => [],
+    outputFormat: null,
+    is24hr: true,
+    calendars: 2,
+    disabled: false,
+    minDate: null,
+    maxDate: null,
 });
 
 const emit = defineEmits(['update:modelValue', 'on-open', 'on-close', 'date-selected', 'range-selected']);

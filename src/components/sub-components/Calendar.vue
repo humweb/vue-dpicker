@@ -29,10 +29,11 @@
 import { ref, computed } from 'vue';
 import type { PropType } from 'vue';
 import { useDateHelpers } from '../../composables/useDateHelpers';
+import type { DateRange } from '../../types';
 
 const props = defineProps({
     modelValue: {
-        type: [Object, Date] as PropType<Date | { start: Date | null; end: Date | null } | null>,
+        type: [Object, Date] as PropType<Date | DateRange | null>,
         default: null,
     },
     range: {

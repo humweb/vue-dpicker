@@ -9,14 +9,7 @@
 
 <script lang="ts" setup>
 import { defineProps, defineEmits } from 'vue';
-
-interface Preset {
-    label: string;
-    range: {
-        start: Date;
-        end: Date;
-    };
-}
+import type { Preset } from '../../types';
 
 const props = defineProps({
     presets: {
