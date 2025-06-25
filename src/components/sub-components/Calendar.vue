@@ -1,9 +1,11 @@
 <template>
     <div class="p-4">
         <div class="flex justify-between items-center mb-2">
-            <button @click="prevMonth" class="p-2 rounded-full hover:bg-gray-100"></button>
+            <button @click="$emit('prev-month')" class="p-2 rounded-full hover:bg-gray-100"
+                :class="{ 'invisible': props.hidePrev }"></button>
             <span class="text-lg font-semibold">{{ monthYear }}</span>
-            <button @click="nextMonth" class="p-2 rounded-full hover:bg-gray-100">></button>
+            <button @click="$emit('next-month')" class="p-2 rounded-full hover:bg-gray-100"
+                :class="{ 'invisible': props.hideNext }">></button>
         </div>
         <div class="grid grid-cols-7 gap-1 text-center text-sm text-gray-500">
             <div v-for="day in daysOfWeek" :key="day">{{ day }}</div>
@@ -36,35 +38,34 @@ const props = defineProps({
     range: {
         type: Boolean,
         default: false,
-    }
+    },
+    currentDate: {
+        type: Date,
+        default: () => new Date(),
+    },
+    hidePrev: {
+        type: Boolean,
+        default: false,
+    },
+    hideNext: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'prev-month', 'next-month']);
 
 const { getDaysInMonth, formatDate, isDateInRange, isSameDate } = useDateHelpers();
 
-const currentDate = ref(new Date());
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const days = computed(() =>
-    getDaysInMonth(currentDate.value.getMonth(), currentDate.value.getFullYear())
+    getDaysInMonth(props.currentDate.getMonth(), props.currentDate.getFullYear())
 );
 
 const monthYear = computed(() =>
-    formatDate(currentDate.value, 'MMMM YYYY')
+    formatDate(props.currentDate, 'MMMM YYYY')
 );
-
-const prevMonth = () => {
-    currentDate.value = new Date(
-        currentDate.value.setMonth(currentDate.value.getMonth() - 1)
-    );
-};
-
-const nextMonth = () => {
-    currentDate.value = new Date(
-        currentDate.value.setMonth(currentDate.value.getMonth() + 1)
-    );
-};
 
 const selectDate = (date: Date) => {
     if (!props.range) {

@@ -1,67 +1,132 @@
+<script setup lang='ts'>
+import { ref } from 'vue';
+import { DatePicker } from '../../src/index';
+import Prism from 'vue-prism-component';
+import 'prismjs/themes/prism-tomorrow.css';
+
+// --- Refs for Date Models ---
+const date = ref(new Date());
+
+const dateRange = ref({
+    start: new Date(),
+    end: new Date(new Date().setDate(new Date().getDate() + 7)),
+});
+
+const dateWithPresets = ref({
+    start: new Date(),
+    end: new Date(new Date().setDate(new Date().getDate() + 7)),
+});
+
+const dateTime = ref(new Date());
+
+// --- Code Snippets for Examples (as strings) ---
+const dateRangeCode = `<DatePicker
+  v-model='dateRange'
+/>`;
+
+const datePresetsCode = `<DatePicker
+  v-model='dateWithPresets'
+  range
+  :presets='[
+    {
+      label: "Today",
+      range: { start: new Date(), end: new Date() }
+    },
+    {
+      label: "Next 7 Days",
+      range: { start: new Date(), end: new Date(new Date().setDate(new Date().getDate() + 7)) }
+    },
+    {
+      label: "This Month",
+      range: {
+        start: new Date(new Date().setDate(1)),
+        end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
+      }
+    }
+  ]'
+/>`;
+
+const dateTimeCode = `<DatePicker
+  v-model='dateTime'
+  enable-time
+/>`;
+</script>
+
 <template>
-    <div id="app" class="bg-gray-100 min-h-screen p-8">
-        <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-            <h1 class="text-2xl font-bold mb-6 text-center">Vue Date Picker Example</h1>
+    <div class='bg-gray-100 min-h-screen font-sans text-gray-900'>
+        <header class='bg-white border-b border-gray-200'>
+            <div class='container mx-auto px-6 py-5'>
+                <h1 class='text-3xl font-bold text-blue-600'>Vue dPicker Showcase</h1>
+                <p class='text-gray-600 mt-1'>
+                    A clean, modern, and flexible date picker for Vue 3.
+                </p>
+            </div>
+        </header>
 
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold mb-4">Date Only</h2>
-                <DatePicker v-model="selectedDate" @date-selected="logDate" />
-                <p class="mt-2 text-gray-600">Selected Date: {{ selectedDate }}</p>
+        <main class='container mx-auto p-6 grid gap-10'>
+            <!-- Card 1: Date Range Selection -->
+            <div class='bg-white rounded-xl shadow-lg overflow-hidden transition-shadow hover:shadow-2xl'>
+                <div class='p-8'>
+                    <h2 class='text-2xl font-semibold mb-2'>1. Date Selection</h2>
+                    <p class='text-gray-600 mb-6'>
+                        Simple date picker
+                    </p>
+                    <div class='flex justify-center items-center p-8 bg-gray-50 rounded-lg border border-gray-200'>
+                        <DatePicker v-model='date' />
+                    </div>
+                </div>
+                <div class='bg-gray-800'>
+                    <Prism language='html'>{{ dateRangeCode.trim() }}</Prism>
+                </div>
             </div>
 
-            <hr class="my-6" />
-
-            <div class="mb-8">
-                <h2 class="text-xl font-semibold mb-4">Date and Time (String Input)</h2>
-                <DatePicker v-model="selectedDateTimeString" :enableTime="true" @date-selected="logDate" />
-                <p class="mt-2 text-gray-600">Selected Date Time: {{ selectedDateTimeString }}</p>
+            <!-- Card 2: Date Presets -->
+            <div class='bg-white rounded-xl shadow-lg overflow-hidden transition-shadow hover:shadow-2xl'>
+                <div class='p-8'>
+                    <h2 class='text-2xl font-semibold mb-2'>2. Date Presets</h2>
+                    <p class='text-gray-600 mb-6'>
+                        Enable date range selection by adding the <code>range</code> boolean prop.
+                        Provide an array of preset objects for common date selections.
+                    </p>
+                    <div class='flex justify-center items-center p-8 bg-gray-50 rounded-lg border border-gray-200'>
+                        <DatePicker v-model='dateWithPresets' range :presets='[
+                            { label: "Today", range: { start: new Date(), end: new Date() } },
+                            { label: "Next 7 Days", range: { start: new Date(), end: new Date(new Date().setDate(new Date().getDate() + 7)) } },
+                            { label: "This Month", range: { start: new Date(new Date().setDate(1)), end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0) } }
+                        ]' />
+                    </div>
+                </div>
+                <div class='bg-gray-800'>
+                    <Prism language='html'>{{ datePresetsCode.trim() }}</Prism>
+                </div>
             </div>
 
-            <hr class="my-6" />
-
-            <div>
-                <h2 class="text-xl font-semibold mb-4">Date Range</h2>
-                <DatePicker v-model="selectedRange" :range="true" :presets="presets" @range-selected="logRange" />
-                <p class="mt-2 text-gray-600">Selected Range: {{ selectedRange }}</p>
+            <!-- Card 3: Date & Time Picker -->
+            <div class='bg-white rounded-xl shadow-lg overflow-hidden transition-shadow hover:shadow-2xl'>
+                <div class='p-8'>
+                    <h2 class='text-2xl font-semibold mb-2'>3. Date & Time Picker</h2>
+                    <p class='text-gray-600 mb-6'>
+                        Enable time selection by adding the <code>time-picker</code> boolean prop.
+                    </p>
+                    <div class='flex justify-center items-center p-8 bg-gray-50 rounded-lg border border-gray-200'>
+                        <DatePicker v-model='dateTime' enable-time />
+                    </div>
+                </div>
+                <div class='bg-gray-800'>
+                    <Prism language='html'>{{ dateTimeCode.trim() }}</Prism>
+                </div>
             </div>
-        </div>
+        </main>
+
+        <footer class='text-center py-6 text-gray-500 text-sm'>
+            <p>Built with ❤️ and Vue 3.</p>
+        </footer>
     </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue';
-import { DatePicker } from '../../src';
-
-const selectedDate = ref<string | Date | null>(new Date());
-const selectedDateTimeString = ref<string | Date | null>('2025-07-04T12:30:00.000Z');
-const selectedRange = ref<{ start: Date | string | null, end: Date | string | null }>({ start: new Date(), end: '2025-08-01' });
-
-const logDate = (date: Date | string) => {
-    console.log('Date Selected:', date);
-};
-
-const logRange = (range: { start: Date | string | null, end: Date | string | null }) => {
-    console.log('Range Selected:', range);
-};
-
-const presets = ref([
-    {
-        label: 'Last 7 days',
-        range: {
-            start: new Date(new Date().setDate(new Date().getDate() - 7)),
-            end: new Date(),
-        },
-    },
-    {
-        label: 'Last 30 days',
-        range: {
-            start: new Date(new Date().setDate(new Date().getDate() - 30)),
-            end: new Date(),
-        },
-    },
-]);
-</script>
-
 <style>
-/* Styles are now handled by Tailwind CSS */
+/* Overriding prism-tomorrow to better fit the design */
+pre[class*='language-'] {
+    @apply rounded-none m-0 p-6 text-sm;
+}
 </style>
