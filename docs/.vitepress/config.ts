@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   title: "Vue dPicker",
   description: "A Vue Datepicker component",
+  base: '/vue-dpicker/',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
