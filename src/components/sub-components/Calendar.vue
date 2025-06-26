@@ -2,7 +2,7 @@
     <div class="p-4">
         <div class="flex justify-between items-center mb-2">
             <button @click="$emit('prev-month')" class="p-2 rounded-full hover:bg-gray-100"
-                :class="{ 'invisible': props.hidePrev }"></button>
+                :class="{ 'invisible': props.hidePrev }"><</button>
             <span class="text-lg font-semibold">{{ monthYear }}</span>
             <button @click="$emit('next-month')" class="p-2 rounded-full hover:bg-gray-100"
                 :class="{ 'invisible': props.hideNext }">></button>
