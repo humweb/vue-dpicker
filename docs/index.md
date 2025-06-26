@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: "Vue dPicker"
+  name: "Vue D-Picker"
   text: "A lightweight and customizable datepicker component for Vue 3"
   actions:
     - theme: brand
