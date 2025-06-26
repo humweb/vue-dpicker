@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
-
+import pkg from './package.json';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
@@ -13,7 +13,7 @@ export default defineConfig({
       fileName: 'vue-datepicker'
     },
     rollupOptions: {
-      external: ['vue'],
+      external: Object.keys(pkg.peerDependencies || {}),
       output: {
         globals: {
           vue: 'Vue'

@@ -48,3 +48,64 @@ describe('DatePicker', () => {
     expect(wrapper.findAllComponents({ name: 'Calendar' }).length).toBe(3);
   });
 });
+
+it('does not emit update:modelValue until end date is selected in range mode', async () => {
+    const wrapper = mount(DatePicker, {
+      props: {
+        range: true,
+        inline: true,
+        outputFormat: 'object',
+      },
+    });
+
+    const calendar = wrapper.findComponent({ name: 'Calendar' });
+    
+    // Select start date
+    await calendar.vm.$emit('update:modelValue', { start: new Date(2024, 6, 10), end: null });
+    
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    // Select end date
+    await calendar.vm.$emit('update:modelValue', { start: new Date(2024, 6, 10), end: new Date(2024, 6, 15) });
+    
+    expect(wrapper.emitted('update:modelValue')).toBeDefined();
+    expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([{
+      start: new Date(2024, 6, 10),
+      end: new Date(2024, 6, 15),
+    }]);
+  });
+
+  it('emits a formatted string with default format when outputFormat is not specified', async () => {
+    const wrapper = mount(DatePicker, {
+      props: {
+        range: true,
+        inline: true,
+      },
+    });
+
+    const calendar = wrapper.findComponent({ name: 'Calendar' });
+
+    // Select start and end date
+    await calendar.vm.$emit('update:modelValue', { start: new Date(2025, 5, 2), end: new Date(2025, 5, 28) });
+
+    expect(wrapper.emitted('update:modelValue')).toBeDefined();
+    expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['06/02/2025 - 06/28/2025']);
+  });
+
+  it('emits a formatted string with custom format when outputFormat is a string', async () => {
+    const wrapper = mount(DatePicker, {
+      props: {
+        range: true,
+        inline: true,
+        outputFormat: 'YYYY-MM-DD',
+      },
+    });
+
+    const calendar = wrapper.findComponent({ name: 'Calendar' });
+
+    // Select start and end date
+    await calendar.vm.$emit('update:modelValue', { start: new Date(2025, 5, 2), end: new Date(2025, 5, 28) });
+
+    expect(wrapper.emitted('update:modelValue')).toBeDefined();
+    expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['2025-06-02 - 2025-06-28']);
+  });

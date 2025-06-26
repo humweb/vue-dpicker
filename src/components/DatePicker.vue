@@ -33,15 +33,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, Teleport } from 'vue';
-import { useFloating, autoUpdate } from '@floating-ui/vue';
+import { computed, ref, watch } from 'vue';
+import { autoUpdate, useFloating } from '@floating-ui/vue';
 import dayjs from 'dayjs';
 import Calendar from './sub-components/Calendar.vue';
 import TimePicker from './sub-components/TimePicker.vue';
 import Presets from './sub-components/Presets.vue';
 import { useDateHelpers } from '../composables/useDateHelpers';
-import type { PropType } from 'vue';
-import type { ModelValue, Preset, DatePickerProps } from '../types';
+import type { DatePickerProps, ModelValue } from '../types';
 
 const { combineDateAndTime, parseDate, formatDate } = useDateHelpers();
 
@@ -51,7 +50,7 @@ const props = withDefaults(defineProps<DatePickerProps>(), {
     enableTime: false,
     range: false,
     presets: () => [],
-    outputFormat: null,
+    outputFormat: '',
     is24hr: true,
     calendars: 2,
     disabled: false,
@@ -89,41 +88,21 @@ const handlePresetSelect = (range: { start: Date; end: Date }) => {
     }
 };
 
-const dateValue = computed({
-    get() {
-        if (props.range) {
-            if (props.modelValue && typeof props.modelValue === 'object' && 'start' in props.modelValue) {
-                return {
-                    start: props.modelValue.start ? parseDate(props.modelValue.start) : null,
-                    end: props.modelValue.end ? parseDate(props.modelValue.end) : null,
-                };
-            }
-            return { start: null, end: null };
-        }
-        if (props.modelValue) {
-            return parseDate(props.modelValue as string | Date);
-        }
-        return new Date();
-    },
-    set(value) {
-        internalValue.value = value;
-    }
-});
+const dateValue = ref(props.modelValue ? parseDate(props.modelValue as string | Date) : null);
 
 const timeValue = ref({
     hours: props.modelValue instanceof Date ? new Date(props.modelValue).getHours() : 0,
     minutes: props.modelValue instanceof Date ? new Date(props.modelValue).getMinutes() : 0,
 });
 
-watch([dateValue, timeValue], ([newDate, newTime], [oldDate, oldTime]) => {
+watch(dateValue, (newDate) => {
     if (props.range) {
         internalValue.value = newDate;
         return;
     }
 
     if (newDate && newDate instanceof Date) {
-        const combined = combineDateAndTime(newDate, newTime);
-        internalValue.value = combined;
+        internalValue.value = combineDateAndTime(newDate, timeValue.value);
     }
 }, { deep: true });
 
@@ -151,16 +130,22 @@ watch(() => props.modelValue, (newValue) => {
 });
 
 watch(internalValue, (newValue) => {
-    let formattedValue = newValue;
-    if (props.outputFormat) {
+    if (props.range && newValue && typeof newValue === 'object' && 'start' in newValue && newValue.start && !newValue.end) {
+        return;
+    }
+    let formattedValue: ModelValue = newValue;
+
+    if (props.outputFormat !== 'object') {
         if (typeof props.outputFormat === 'string') {
-            if (props.range && typeof newValue === 'object' && newValue && 'start' in newValue) {
-                formattedValue = {
-                    start: newValue.start ? useDateHelpers().formatDate(newValue.start, props.outputFormat) : null,
-                    end: newValue.end ? useDateHelpers().formatDate(newValue.end, props.outputFormat) : null,
-                };
+            if (props.range) {
+                if (newValue && typeof newValue === 'object' && 'start' in newValue && newValue.start && newValue.end) {
+                    const format = props.outputFormat || 'MM/DD/YYYY';
+                    const startStr = formatDate(newValue.start, format);
+                    const endStr = formatDate(newValue.end, format);
+                    formattedValue = `${startStr} - ${endStr}`;
+                }
             } else if (newValue instanceof Date) {
-                formattedValue = useDateHelpers().formatDate(newValue, props.outputFormat);
+                formattedValue = useDateHelpers().formatDate(newValue, props.outputFormat || 'MM/DD/YYYY');
             }
         } else if (typeof props.outputFormat === 'function') {
             const { parseDate } = useDateHelpers();
@@ -174,6 +159,7 @@ watch(internalValue, (newValue) => {
             }
         }
     }
+
     emit('update:modelValue', formattedValue);
     if (props.range) {
         if (newValue && typeof newValue === 'object' && 'start' in newValue) {
@@ -187,7 +173,7 @@ watch(internalValue, (newValue) => {
 const formattedDate = computed(() => {
     if (!internalValue.value) return '';
 
-    const format = typeof props.outputFormat === 'string' ? props.outputFormat : 'YYYY-MM-DD';
+    const format = (typeof props.outputFormat === 'string' && props.outputFormat) ? props.outputFormat : 'MM/DD/YYYY';
 
     if (props.range && typeof internalValue.value === 'object' && internalValue.value && 'start' in internalValue.value) {
         const start = internalValue.value.start ? dayjs(internalValue.value.start).format(format) : '';
@@ -209,7 +195,3 @@ watch(internalValue, (newValue) => {
 });
 
 </script>
-
-<style scoped>
-/* No component-specific styles needed with Tailwind */
-</style>

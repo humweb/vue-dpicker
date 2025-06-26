@@ -19,7 +19,7 @@ export interface DatePickerProps {
     enableTime?: boolean;
     range?: boolean;
     presets?: Preset[];
-    outputFormat?: string | ((date: Date) => string) | null;
+    outputFormat?: 'object' | string | ((date: Date) => string) | null;
     is24hr?: boolean;
     calendars?: number;
     disabled?: boolean;

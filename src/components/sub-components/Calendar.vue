@@ -3,7 +3,7 @@
         <div class="flex justify-between items-center mb-2">
             <button @click="$emit('prev-month')" class="p-2 rounded-full hover:bg-gray-100"
                 :class="{ 'invisible': props.hidePrev }"><</button>
-            <span class="text-lg font-semibold">{{ monthYear }}</span>
+            <span class="text-sm font-semibold">{{ monthYear }}</span>
             <button @click="$emit('next-month')" class="p-2 rounded-full hover:bg-gray-100"
                 :class="{ 'invisible': props.hideNext }">></button>
         </div>
@@ -11,13 +11,14 @@
             <div v-for="day in daysOfWeek" :key="day">{{ day }}</div>
         </div>
         <div class="grid grid-cols-7 gap-1 mt-2">
-            <div v-for="(day, index) in days" :key="index" class="text-center p-2 rounded-full cursor-pointer" :class="{
+            <div v-for="(day, index) in days" :key="index" class="text-xs text-center py-1.5 cursor-pointer" :class="{
                 'text-gray-400': !day.isCurrentMonth,
                 'bg-blue-500 text-white': isSelected(day.date),
-                'bg-blue-100': isInRange(day.date) && !isSelected(day.date),
+                'rounded-full': isSelected(day.date) && !range,
+                'bg-blue-100 hover:rounded-none': isInRange(day.date) && !isSelected(day.date),
                 'rounded-l-full': isRangeStart(day.date) && !isRangeEnd(day.date),
                 'rounded-r-full': isRangeEnd(day.date) && !isRangeStart(day.date),
-                'hover:bg-gray-200': !isSelected(day.date)
+                'hover:bg-gray-200 hover:rounded-full': !isSelected(day.date)
             }" @click="selectDate(day.date)">
                 {{ new Date(day.date).getDate() }}
             </div>
@@ -26,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import type { PropType } from 'vue';
 import { useDateHelpers } from '../../composables/useDateHelpers';
 import type { DateRange } from '../../types';
@@ -98,8 +99,8 @@ const isSelected = (date: Date) => {
     if (props.range && 'start' in props.modelValue) {
         const { start, end } = props.modelValue;
         if (start && isSameDate(date, start)) return true;
-        if (end && isSameDate(date, end)) return true;
-        return false;
+        return !!(end && isSameDate(date, end));
+
     }
 
     if (props.modelValue instanceof Date) {

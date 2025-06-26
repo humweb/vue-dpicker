@@ -1,6 +1,6 @@
 {
   "name": "vue-dpicker",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "repository": {
     "type": "git",
@@ -36,7 +36,10 @@
     "vue-tsc": "^2.2.10"
   },
   "peerDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vue": "^3.5.17",
+    "@floating-ui/vue": "^1.1.6",
+    "dayjs": "^1.11.13"
   },
   "dependencies": {
     "@floating-ui/vue": "^1.1.6",
