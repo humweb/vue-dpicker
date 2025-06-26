@@ -1,6 +1,6 @@
 {
   "name": "vue-dpicker",
-  "module": "src/index.ts",
+  "version": "0.1.0",
   "type": "module",
   "repository": {
     "type": "git",
@@ -11,6 +11,19 @@
     "email": "ryun@humboldtweb.com",
     "name": "Ryun"
   },
+  "exports": {
+    ".": {
+      "import": "./dist/vue-datepicker.js",
+      "require": "./dist/vue-datepicker.umd.cjs",
+      "types": "./dist/types.d.ts"
+    }
+  },
+  "main": "./dist/vue-datepicker.umd.cjs",
+  "module": "./dist/vue-datepicker.js",
+  "types": "./dist/types.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
@@ -22,6 +35,7 @@
     "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.10",
     "@types/bun": "latest",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vue/test-utils": "^2.4.6",
@@ -31,20 +45,20 @@
     "release-it": "^19.0.3",
     "tailwindcss": "^3.4.17",
     "vite": "^5.4.19",
-    "vitepress": "^1.3.2",
+    "vitepress": "^1.6.3",
     "vitest": "^3.2.4",
     "vue-tsc": "^2.2.10"
   },
   "peerDependencies": {
-    "typescript": "^5.8.3",
-    "vue": "^3.5.17",
     "@floating-ui/vue": "^1.1.6",
-    "dayjs": "^1.11.13"
+    "dayjs": "^1.11.13",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "vue": "^3.5.17"
   },
   "dependencies": {
     "@floating-ui/vue": "^1.1.6",
     "dayjs": "^1.11.13",
     "vue": "^3.5.17"
-  },
-  "version": "0.1.0"
+  }
 }
