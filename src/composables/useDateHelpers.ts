@@ -6,10 +6,6 @@ dayjs.extend(weekday);
 dayjs.extend(weekOfYear);
 
 export function useDateHelpers() {
-  const formatDate = (date: string | Date, format: string) => {
-    return dayjs(date).format(format);
-  };
-
   const getDaysInMonth = (month: number, year: number) => {
     const date = dayjs().month(month).year(year);
     const daysInMonth = date.daysInMonth();
@@ -21,24 +17,24 @@ export function useDateHelpers() {
     const prevMonthDays = prevMonth.daysInMonth();
     for (let i = firstDayOfMonth; i > 0; i--) {
       days.push({
-        date: prevMonth.date(prevMonthDays - i + 1).toDate(),
-        isCurrentMonth: false,
+          date: prevMonth.date(prevMonthDays - i + 1).startOf('day').toDate(),
+          isCurrentMonth: false,
       });
-    }
+  }
 
-    for (let i = 1; i <= daysInMonth; i++) {
+  for (let i = 1; i <= daysInMonth; i++) {
       days.push({
-        date: date.date(i).toDate(),
-        isCurrentMonth: true,
+          date: date.date(i).startOf('day').toDate(),
+          isCurrentMonth: true,
       });
-    }
+  }
 
-    const remainingDays = 42 - days.length;
-    const nextMonth = date.add(1, 'month');
-    for (let i = 1; i <= remainingDays; i++) {
+  const remainingDays = 42 - days.length;
+  const nextMonth = date.add(1, 'month');
+  for (let i = 1; i <= remainingDays; i++) {
       days.push({
-        date: nextMonth.date(i).toDate(),
-        isCurrentMonth: false,
+          date: nextMonth.date(i).startOf('day').toDate(),
+          isCurrentMonth: false,
       });
     }
 
@@ -70,7 +66,6 @@ export function useDateHelpers() {
   }
 
   return {
-    formatDate,
     getDaysInMonth,
     combineDateAndTime,
     isDateInRange,

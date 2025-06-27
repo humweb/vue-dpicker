@@ -12,7 +12,7 @@
         </div>
     </div>
     <div v-else>
-        <input ref="inputRef" :value="formattedDate" @click="isOpen = !isOpen" readonly
+        <input ref="inputRef" :value="formattedDate" @click="toggleDatepicker" readonly
             class="border p-2 rounded w-full" />
         <Teleport to="body">
             <div ref="floating" v-if="isOpen" :style="floatingStyles"
@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, nextTick } from 'vue';
 import { autoUpdate, useFloating } from '@floating-ui/vue';
 import dayjs from 'dayjs';
 import Calendar from './sub-components/Calendar.vue';
@@ -202,8 +202,16 @@ const formattedDate = computed(() => {
     return '';
 });
 
+const toggleDatepicker = () => {
+    // Use nextTick to avoid immediate reactive updates that might cause infinite loops
+    nextTick(() => {
+        isOpen.value = !isOpen.value;
+    });
+};
+
+// Only close the datepicker when a date is selected, not when it's opened
 watch(internalValue, (newValue, oldValue) => {
-    if (!props.inline && !props.range && JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
+    if (!props.inline && !props.range && JSON.stringify(newValue) !== JSON.stringify(oldValue) && isOpen.value) {
         isOpen.value = false;
     }
 });
