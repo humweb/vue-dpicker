@@ -2,28 +2,28 @@
     <div v-if="inline" class="vue-datepicker bg-white border border-gray-300 rounded-lg shadow-lg flex">
         <Presets v-if="range && presets.length" :presets="presets" @select="handlePresetSelect" />
         <div>
-            <div class="flex">
-                <Calendar v-for="calendar in calendars" :key="calendar" v-model="dateValue" :range="range"
-                    :current-date="new Date(new Date(currentDate).setMonth(currentDate.getMonth() + (calendar - 1)))"
-                    @prev-month="prevMonth" @next-month="nextMonth" :hide-prev="calendar !== 1"
-                    :hide-next="calendar !== calendars" />
+            <div class="flex" @mouseleave="hoveredDate = null">
+                <Calendar v-for="(calendarDate, index) in calendarDates" :key="index" v-model="calendarValue"
+                    :range="range" :current-date="calendarDate" @prev-month="prevMonth" @next-month="nextMonth"
+                    :hide-prev="index !== 0" :hide-next="index !== calendarDates.length - 1" :hovered-date="hoveredDate"
+                    @date-hover="hoveredDate = $event" />
             </div>
             <TimePicker v-if="enableTime && !range" v-model="timeValue" :is24hr="is24hr" />
         </div>
     </div>
     <div v-else>
-        <input ref="reference" :value="formattedDate" @click="isOpen = !isOpen" readonly
+        <input ref="inputRef" :value="formattedDate" @click="isOpen = !isOpen" readonly
             class="border p-2 rounded w-full" />
         <Teleport to="body">
             <div ref="floating" v-if="isOpen" :style="floatingStyles"
                 class="vue-datepicker bg-white border border-gray-300 rounded-lg shadow-lg flex z-10">
                 <Presets v-if="range && presets.length" :presets="presets" @select="handlePresetSelect" />
                 <div>
-                    <div class="flex">
-                        <Calendar v-for="calendar in calendars" :key="calendar" v-model="dateValue" :range="range"
-                            :current-date="new Date(new Date(currentDate).setMonth(currentDate.getMonth() + (calendar - 1)))"
-                            @prev-month="prevMonth" @next-month="nextMonth" :hide-prev="calendar !== 1"
-                            :hide-next="calendar !== calendars" />
+                    <div class="flex" @mouseleave="hoveredDate = null">
+                        <Calendar v-for="(calendarDate, index) in calendarDates" :key="index" v-model="calendarValue"
+                            :range="range" :current-date="calendarDate" @prev-month="prevMonth" @next-month="nextMonth"
+                            :hide-prev="index !== 0" :hide-next="index !== calendarDates.length - 1"
+                            :hovered-date="hoveredDate" @date-hover="hoveredDate = $event" />
                     </div>
                     <TimePicker v-if="enableTime && !range" v-model="timeValue" :is24hr="is24hr" />
                 </div>
@@ -42,7 +42,7 @@ import Presets from './sub-components/Presets.vue';
 import { useDateHelpers } from '../composables/useDateHelpers';
 import type { DatePickerProps, ModelValue } from '../types';
 
-const { combineDateAndTime, parseDate, formatDate } = useDateHelpers();
+const { combineDateAndTime, parseDate } = useDateHelpers();
 
 const props = withDefaults(defineProps<DatePickerProps>(), {
     modelValue: null,
@@ -60,11 +60,11 @@ const props = withDefaults(defineProps<DatePickerProps>(), {
 
 const emit = defineEmits(['update:modelValue', 'on-open', 'on-close', 'date-selected', 'range-selected']);
 
-const isOpen = ref(props.inline);
-const reference = ref(null);
+const isOpen = ref(false);
+const inputRef = ref(null);
 const floating = ref(null);
 
-const { floatingStyles } = useFloating(reference, floating, {
+const { floatingStyles } = useFloating(inputRef, floating, {
     placement: 'bottom-start',
     open: isOpen,
     whileElementsMounted: autoUpdate,
@@ -72,6 +72,15 @@ const { floatingStyles } = useFloating(reference, floating, {
 
 const currentDate = ref(new Date());
 const internalValue = ref(props.modelValue);
+const hoveredDate = ref<Date | null>(null);
+
+const calendarDates = computed(() => {
+    const dates = [];
+    for (let i = 1; i <= props.calendars; i++) {
+        dates.push(new Date(new Date(currentDate.value).setMonth(currentDate.value.getMonth() + (i - 1))));
+    }
+    return dates;
+});
 
 const prevMonth = () => {
     currentDate.value = new Date(currentDate.value.setMonth(currentDate.value.getMonth() - 1));
@@ -88,7 +97,25 @@ const handlePresetSelect = (range: { start: Date; end: Date }) => {
     }
 };
 
-const dateValue = ref(props.modelValue ? parseDate(props.modelValue as string | Date) : null);
+const dateValue = ref<ModelValue>(props.modelValue);
+
+const calendarValue = computed({
+    get: () => {
+        if (typeof dateValue.value === 'string') {
+            return parseDate(dateValue.value);
+        }
+        if (dateValue.value && typeof dateValue.value === 'object' && 'start' in dateValue.value) {
+            return {
+                start: dateValue.value.start ? parseDate(dateValue.value.start as string | Date) : null,
+                end: dateValue.value.end ? parseDate(dateValue.value.end as string | Date) : null,
+            };
+        }
+        return dateValue.value;
+    },
+    set: (newValue) => {
+        dateValue.value = newValue;
+    }
+});
 
 const timeValue = ref({
     hours: props.modelValue instanceof Date ? new Date(props.modelValue).getHours() : 0,
@@ -96,6 +123,7 @@ const timeValue = ref({
 });
 
 watch(dateValue, (newDate) => {
+
     if (props.range) {
         internalValue.value = newDate;
         return;
@@ -106,14 +134,22 @@ watch(dateValue, (newDate) => {
     }
 }, { deep: true });
 
+watch(timeValue, (newTime) => {
+    if (!props.range && dateValue.value && dateValue.value instanceof Date) {
+        internalValue.value = combineDateAndTime(dateValue.value, newTime);
+    }
+}, { deep: true });
+
 watch(() => props.modelValue, (newValue) => {
+    if (JSON.stringify(newValue) === JSON.stringify(internalValue.value)) return;
     internalValue.value = newValue;
+    dateValue.value = newValue;
+
     if (props.range) {
         if (newValue && typeof newValue === 'object' && 'start' in newValue) {
             // Range mode, do nothing to timeValue
         }
-    }
-    else if (newValue instanceof Date) {
+    } else if (newValue instanceof Date) {
         timeValue.value = {
             hours: new Date(newValue).getHours(),
             minutes: new Date(newValue).getMinutes(),
@@ -130,45 +166,23 @@ watch(() => props.modelValue, (newValue) => {
 });
 
 watch(internalValue, (newValue) => {
+    if (JSON.stringify(newValue) === JSON.stringify(props.modelValue)) return;
+
     if (props.range && newValue && typeof newValue === 'object' && 'start' in newValue && newValue.start && !newValue.end) {
         return;
     }
-    let formattedValue: ModelValue = newValue;
 
-    if (props.outputFormat !== 'object') {
-        if (typeof props.outputFormat === 'string') {
-            if (props.range) {
-                if (newValue && typeof newValue === 'object' && 'start' in newValue && newValue.start && newValue.end) {
-                    const format = props.outputFormat || 'MM/DD/YYYY';
-                    const startStr = formatDate(newValue.start, format);
-                    const endStr = formatDate(newValue.end, format);
-                    formattedValue = `${startStr} - ${endStr}`;
-                }
-            } else if (newValue instanceof Date) {
-                formattedValue = useDateHelpers().formatDate(newValue, props.outputFormat || 'MM/DD/YYYY');
-            }
-        } else if (typeof props.outputFormat === 'function') {
-            const { parseDate } = useDateHelpers();
-            if (props.range && typeof newValue === 'object' && newValue && 'start' in newValue) {
-                formattedValue = {
-                    start: newValue.start ? props.outputFormat(parseDate(newValue.start)) : null,
-                    end: newValue.end ? props.outputFormat(parseDate(newValue.end)) : null,
-                };
-            } else if (newValue) {
-                formattedValue = props.outputFormat(parseDate(newValue as string | Date));
-            }
-        }
-    }
+    emit('update:modelValue', newValue);
 
-    emit('update:modelValue', formattedValue);
     if (props.range) {
         if (newValue && typeof newValue === 'object' && 'start' in newValue) {
-            emit('range-selected', formattedValue);
+            emit('range-selected', newValue);
         }
     } else {
-        emit('date-selected', formattedValue);
+        emit('date-selected', newValue);
     }
 });
+
 
 const formattedDate = computed(() => {
     if (!internalValue.value) return '';
@@ -188,8 +202,8 @@ const formattedDate = computed(() => {
     return '';
 });
 
-watch(internalValue, (newValue) => {
-    if (!props.inline && !props.range) {
+watch(internalValue, (newValue, oldValue) => {
+    if (!props.inline && !props.range && JSON.stringify(newValue) !== JSON.stringify(oldValue)) {
         isOpen.value = false;
     }
 });

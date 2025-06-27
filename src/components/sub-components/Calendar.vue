@@ -2,10 +2,12 @@
     <div class="p-4">
         <div class="flex justify-between items-center mb-2">
             <button @click="$emit('prev-month')" class="p-2 rounded-full hover:bg-gray-100"
-                :class="{ 'invisible': props.hidePrev }"><</button>
+                :class="{ 'invisible': props.hidePrev }" aria-label="Previous Month">&lt;
+            </button>
             <span class="text-sm font-semibold">{{ monthYear }}</span>
             <button @click="$emit('next-month')" class="p-2 rounded-full hover:bg-gray-100"
-                :class="{ 'invisible': props.hideNext }">></button>
+                :class="{ 'invisible': props.hideNext }" aria-label="Next Month">&gt;
+            </button>
         </div>
         <div class="grid grid-cols-7 gap-1 text-center text-sm text-gray-500">
             <div v-for="day in daysOfWeek" :key="day">{{ day }}</div>
@@ -13,13 +15,14 @@
         <div class="grid grid-cols-7 gap-1 mt-2">
             <div v-for="(day, index) in days" :key="index" class="text-xs text-center py-1.5 cursor-pointer" :class="{
                 'text-gray-400': !day.isCurrentMonth,
-                'bg-blue-500 text-white': isSelected(day.date),
+                'bg-blue-500 text-white': isSelected(day.date) && (!props.range || day.isCurrentMonth),
                 'rounded-full': isSelected(day.date) && !range,
-                'bg-blue-100 hover:rounded-none': isInRange(day.date) && !isSelected(day.date),
-                'rounded-l-full': isRangeStart(day.date) && !isRangeEnd(day.date),
-                'rounded-r-full': isRangeEnd(day.date) && !isRangeStart(day.date),
+                'bg-blue-100 hover:rounded-none': (isInRange(day.date) || isBetween(day.date)) && !isSelected(day.date) && day.isCurrentMonth,
+                'rounded-l-full': isRangeStart(day.date) && !isRangeEnd(day.date) && day.isCurrentMonth,
+                'rounded-r-full': isRangeEnd(day.date) && !isRangeStart(day.date) && day.isCurrentMonth,
                 'hover:bg-gray-200 hover:rounded-full': !isSelected(day.date)
-            }" @click="selectDate(day.date)">
+            }" @click="selectDate(day.date)" @mouseover="$emit('date-hover', day.date)"
+                :aria-label="`day-${new Date(day.date).getDate()}`">
                 {{ new Date(day.date).getDate() }}
             </div>
         </div>
@@ -29,6 +32,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { PropType } from 'vue';
+import dayjs from 'dayjs';
 import { useDateHelpers } from '../../composables/useDateHelpers';
 import type { DateRange } from '../../types';
 
@@ -53,11 +57,16 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    hoveredDate: {
+        type: Date as PropType<Date | null>,
+        default: null,
+    },
 });
 
-const emit = defineEmits(['update:modelValue', 'prev-month', 'next-month']);
+const emit = defineEmits(['update:modelValue', 'prev-month', 'next-month', 'date-hover']);
 
-const { getDaysInMonth, formatDate, isDateInRange, isSameDate } = useDateHelpers();
+const { getDaysInMonth, isDateInRange, isSameDate } = useDateHelpers();
+
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -66,7 +75,7 @@ const days = computed(() =>
 );
 
 const monthYear = computed(() =>
-    formatDate(props.currentDate, 'MMMM YYYY')
+    dayjs(props.currentDate).format('MMMM YYYY')
 );
 
 const selectDate = (date: Date) => {
@@ -75,22 +84,25 @@ const selectDate = (date: Date) => {
         return;
     }
 
-    let range = {
-        start: props.modelValue && 'start' in props.modelValue ? props.modelValue.start : null,
-        end: props.modelValue && 'end' in props.modelValue ? props.modelValue.end : null
-    };
+    const currentRange = props.modelValue as DateRange | null;
+    const start = currentRange?.start;
+    const end = currentRange?.end;
 
-    if (!range.start || (range.start && range.end)) {
-        range = { start: date, end: null };
-    } else if (range.start && !range.end) {
-        if (date < range.start) {
-            range = { start: date, end: null };
+    let newRange: DateRange;
+
+    if (!start || (start && end)) {
+        // No start date, or range is complete. Start a new range.
+        newRange = { start: date, end: null };
+    } else {
+        // Start date is set, but no end date.
+        if (date < start) {
+            newRange = { start: date, end: start };
         } else {
-            range.end = date;
+            newRange = { start: start, end: date };
         }
     }
 
-    emit('update:modelValue', range);
+    emit('update:modelValue', newRange);
 };
 
 const isSelected = (date: Date) => {
@@ -115,6 +127,33 @@ const isInRange = (date: Date) => {
         return false;
     }
     return isDateInRange(date, props.modelValue.start, props.modelValue.end);
+};
+
+const isBetween = (date: Date) => {
+    if (!props.range) return false;
+    const currentRange = props.modelValue as DateRange | null;
+    // Only apply hover effect if a start date is selected but an end date is not.
+    if (!currentRange || !currentRange.start || currentRange.end || !props.hoveredDate) {
+        return false;
+    }
+
+    const start = currentRange.start;
+    const hover = props.hoveredDate;
+
+    // Don't highlight if hovering over the start date itself
+    if (isSameDate(hover, start)) {
+        return false;
+    }
+
+    const d = dayjs(date);
+    const s = dayjs(start);
+    const h = dayjs(hover);
+
+    // Check if the date is between the start and hover dates
+    if (h.isBefore(s)) {
+        return d.isAfter(h) && d.isBefore(s);
+    }
+    return d.isAfter(s) && d.isBefore(h);
 };
 
 const isRangeStart = (date: Date) => {
