@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, nextTick } from 'vue';
+import { computed, ref, watch, nextTick, onBeforeUnmount, onMounted } from 'vue';
 import { autoUpdate, useFloating } from '@floating-ui/vue';
 import dayjs from 'dayjs';
 import Calendar from './sub-components/Calendar.vue';
@@ -202,12 +202,38 @@ const formattedDate = computed(() => {
     return '';
 });
 
+const handleClickOutside = (event: MouseEvent) => {
+    if (!isOpen.value) return;
+
+    const target = event.target as HTMLElement;
+    const isClickOnInput = inputRef.value && inputRef.value.contains(target);
+    const isClickOnDatepicker = floating.value && floating.value.contains(target);
+
+    if (!isClickOnInput && !isClickOnDatepicker) {
+        isOpen.value = false;
+    }
+};
+
 const toggleDatepicker = () => {
     // Use nextTick to avoid immediate reactive updates that might cause infinite loops
     nextTick(() => {
         isOpen.value = !isOpen.value;
     });
 };
+
+// Add and remove event listeners for click-outside detection
+watch(isOpen, (newValue) => {
+    if (newValue) {
+        document.addEventListener('mousedown', handleClickOutside);
+    } else {
+        document.removeEventListener('mousedown', handleClickOutside);
+    }
+});
+
+// Clean up event listeners when component is unmounted
+onBeforeUnmount(() => {
+    document.removeEventListener('mousedown', handleClickOutside);
+});
 
 // Only close the datepicker when a date is selected, not when it's opened
 watch(internalValue, (newValue, oldValue) => {
